@@ -1,4 +1,4 @@
-# KnightLite —— 极简元气骑士
+# AdventureSquad —— 极简元气骑士
 
 一个用 **Cocos Creator 3.8.8** 做的 2D 俯视角 roguelike 射击小游戏，参考《元气骑士》的玩法内核，但刻意做到最小：
 
@@ -10,7 +10,7 @@
 
 **方式一：编辑器（推荐）**
 
-1. 打开 Cocos Dashboard → 项目 → 添加 → 选 `D:\cocos\KnightLite` 目录（或 `CocosCreator.exe --project D:\cocos\KnightLite`）。
+1. 打开 Cocos Dashboard → 项目 → 添加 → 选 `D:\cocos\AdventureSquad` 目录（或 `CocosCreator.exe --project D:\cocos\AdventureSquad`）。
 2. 打开 `assets/scenes/main.scene`，点工具栏的 ▶️ 预览。
 3. **先点一下游戏画面**，让画布获得焦点，否则键盘收不到事件（Cocos 把键盘监听挂在 canvas 上）。
 
@@ -19,7 +19,7 @@
 `build/web-mobile/web-mobile/` 是现成构建产物，起个静态服务器打开 `index.html` 即可：
 
 ```bash
-cd D:\cocos\KnightLite\build\web-mobile\web-mobile
+cd D:\cocos\AdventureSquad\build\web-mobile\web-mobile
 python -m http.server 8080     # 访问 http://localhost:8080
 ```
 

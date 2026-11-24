@@ -10,8 +10,8 @@
 ```bash
 # 1) 构建游戏（产出 build/web-mobile/web-mobile）
 "C:/ProgramData/cocos/editors/Creator/3.8.8/CocosCreator.exe" \
-  --project "D:/cocos/KnightLite" \
-  --build "platform=web-mobile;buildPath=D:/cocos/KnightLite/build/web-mobile;debug=false"
+  --project "D:/cocos/AdventureSquad" \
+  --build "platform=web-mobile;buildPath=D:/cocos/AdventureSquad/build/web-mobile;debug=false"
 
 # 2) 起静态服务器
 node tools/serve.js          # http://localhost:8099

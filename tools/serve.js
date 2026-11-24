@@ -1,5 +1,5 @@
 const http = require('http'), fs = require('fs'), path = require('path');
-const root = 'D:/cocos/KnightLite/build/web-mobile/web-mobile';
+const root = 'D:/cocos/AdventureSquad/build/web-mobile/web-mobile';
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.json': 'application/json', '.png': 'image/png', '.css': 'text/css', '.ogg': 'audio/ogg', '.mp3': 'audio/mpeg', '.wav': 'audio/wav' };
 http.createServer((req, res) => {
   let p = decodeURIComponent(req.url.split('?')[0]);
