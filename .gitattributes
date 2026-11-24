@@ -1,0 +1,10 @@
+# 文本统一用 LF（跨平台协作，避免 Windows 换行符把 diff 弄乱）
+* text=auto eol=lf
+
+# 二进制素材：不做换行符转换、不做 diff
+*.png binary
+*.ogg binary
+*.mp3 binary
+*.wav binary
+*.jpg binary
+*.zip binary
