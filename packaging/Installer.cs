@@ -202,7 +202,8 @@ class InstallerForm : Form
             status.Text = "安装完成";
             MessageBox.Show(
                 "安装完成！\r\n\r\n" +
-                "桌面上的「AdventureSquad」双击即可开始游戏。\r\n" +
+                "点「确定」后安装程序会退出，这是正常的。\r\n" +
+                "之后双击桌面上的「AdventureSquad」图标即可开始游戏。\r\n\r\n" +
                 "安装目录里的「安装与开发指引.txt」写了怎么玩，\r\n" +
                 "以及怎么用 Cocos Creator 打开源码继续开发。\r\n\r\n" +
                 "安装目录：" + installDir,
@@ -332,11 +333,45 @@ class InstallerForm : Form
 
 class Program
 {
+    /// 崩溃时把详情写到 exe 同目录的 install-crash.log，同时弹窗提示
+    static void ReportCrash(Exception ex)
+    {
+        try
+        {
+            string dir = Path.GetDirectoryName(Application.ExecutablePath);
+            string log = Path.Combine(dir, "install-crash.log");
+            File.WriteAllText(log,
+                DateTime.Now.ToString() + "\r\n\r\n" + ex.ToString(),
+                Encoding.UTF8);
+        }
+        catch (Exception) { }
+        try
+        {
+            MessageBox.Show("安装程序出错了：\r\n\r\n" + ex.GetType().Name + ": " + ex.Message +
+                            "\r\n\r\n详细信息已经写到安装程序同目录的 install-crash.log，" +
+                            "把它发给开发者就能定位问题。",
+                            "AdventureSquad", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+        catch (Exception) { }
+    }
+
     [STAThread]
     static void Main()
     {
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
-        Application.Run(new InstallerForm());
+        // 任何没接住的异常都记日志，别再"弹个窗就没了"
+        Application.ThreadException += (s, e) => ReportCrash(e.Exception);
+        AppDomain.CurrentDomain.UnhandledException += (s, e) => {
+            if (e.ExceptionObject is Exception) ReportCrash((Exception)e.ExceptionObject);
+        };
+        try
+        {
+            Application.Run(new InstallerForm());
+        }
+        catch (Exception ex)
+        {
+            ReportCrash(ex);
+        }
     }
 }
