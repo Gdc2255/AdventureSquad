@@ -101,6 +101,21 @@
 - 音频用 Cocos 的 `AudioSource`，音效池 + 单例 BGM
 - 测试用 Chrome DevTools Protocol 驱动无头浏览器跑真实构建产物（见 `tools/README.md`）
 
+## 打包发布
+
+`packaging/` 下是打包脚本，产出一个安装程序和一个安装载荷：
+
+```bash
+node packaging/build-installer.js
+```
+
+- `AdventureSquad-Setup-<版本>.exe` —— WinForms 安装程序，用 .NET Framework 自带的 `csc.exe` 编译
+  （接收方不需要装任何运行时），解压载荷到 `%LOCALAPPDATA%\AdventureSquad` 并建桌面快捷方式
+- `AdventureSquad-<版本>.zip` —— 安装载荷（游戏本体 + 项目源码 + 指引）
+
+两个文件要放在同一个目录里。安装程序是 GUI 的，会显示进度并建出
+「开始游戏 / 卸载」两个桌面快捷方式。
+
 ## 素材来源
 
 全部是 [Kenney](https://kenney.nl) 的 **CC0 1.0**（公共领域，商用免署名）和 OpenGameArt 的 CC0 音乐：

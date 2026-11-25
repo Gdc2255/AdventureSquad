@@ -11,4 +11,4 @@ http.createServer((req, res) => {
     res.writeHead(200, { 'Content-Type': types[path.extname(f)] || 'application/octet-stream' });
     res.end(d);
   });
-}).listen(8099, () => console.log('serving on 8099'));
+}).listen(8099, '127.0.0.1', () => console.log('serving on 8099'));
