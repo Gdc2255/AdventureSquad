@@ -1982,8 +1982,8 @@ export class Game extends Component {
         const shown = Math.round(dmg * (isCrit ? p.critMul : 1));
         // 伤害飘字
         if (this.showDmgNum) {
-            const ft = new FloatText(this.entityLayer, e.x + (Math.random() - 0.5) * 12, e.y + e.r + 6,
-                String(shown), isCrit ? new Color(255, 214, 90) : new Color(255, 245, 225), isCrit ? 17 : 14);
+            const ft = new FloatText(this.entityLayer, e.x + (Math.random() - 0.5) * 14, e.y + e.r + 16,
+                String(shown), isCrit ? new Color(255, 220, 90) : new Color(255, 250, 235), isCrit ? 28 : 20);
             this.floatTexts.push(ft);
         }
         // 命中音效
