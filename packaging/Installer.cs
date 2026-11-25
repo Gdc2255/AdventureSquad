@@ -211,7 +211,9 @@ class InstallerForm : Form
         }
         catch (Exception ex)
         {
-            MessageBox.Show("安装失败：\r\n" + ex.Message, AppName,
+            string detail = ex.GetType().Name + ": " + ex.Message;
+            if (ex.InnerException != null) detail += "\r\n" + ex.InnerException.GetType().Name + ": " + ex.InnerException.Message;
+            MessageBox.Show("安装失败：\r\n\r\n" + detail, AppName,
                 MessageBoxButtons.OK, MessageBoxIcon.Error);
             installBtn.Enabled = true; cancelBtn.Enabled = true;
         }
@@ -247,50 +249,84 @@ class InstallerForm : Form
         File.WriteAllLines(Path.Combine(installDir, "uninstall.cmd"), lines, Encoding.Default);
     }
 
+    /// 建桌面快捷方式。失败不影响安装本身（只是少了快捷方式）。
     void CreateShortcuts()
     {
-        string desktop = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-        string launcher = Path.Combine(installDir, "Game", "play-game.bat");
-        string uninstall = Path.Combine(installDir, "uninstall.cmd");
-
-        Type shellType = Type.GetTypeFromProgID("WScript.Shell");
-        if (shellType == null) return;
-        object shell = Activator.CreateInstance(shellType);
         try
         {
-            var mk = shellType.GetMethod("CreateShortcut");
-            var sc = mk.Invoke(shell, new object[] { Path.Combine(desktop, AppName + ".lnk") });
-            try
-            {
-                Set(sc, "TargetPath", launcher);
-                Set(sc, "WorkingDirectory", Path.Combine(installDir, "Game"));
-                Set(sc, "Description", AppName);
-                Invoke(sc, "Save");
-            }
-            finally { System.Runtime.InteropServices.Marshal.ReleaseComObject(sc); }
+            string desktop = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+            if (string.IsNullOrEmpty(desktop)) return;
+            string launcher = Path.Combine(installDir, "Game", "play-game.bat");
+            string uninstall = Path.Combine(installDir, "uninstall.cmd");
 
-            var un = mk.Invoke(shell, new object[] { Path.Combine(desktop, "卸载 " + AppName + ".lnk") });
+            Type shellType = Type.GetTypeFromProgID("WScript.Shell");
+            if (shellType == null) return;
+            object shell = Activator.CreateInstance(shellType);
+            if (shell == null) return;
             try
             {
-                Set(un, "TargetPath", uninstall);
-                Set(un, "WorkingDirectory", installDir);
-                Invoke(un, "Save");
+                // COM 对象只能用**晚绑定**（InvokeMember），
+                // 用 GetMethod 拿方法是拿不到的（会返回 null）。
+                object sc = Call(shell, "CreateShortcut", Path.Combine(desktop, AppName + ".lnk"));
+                if (sc != null)
+                {
+                    try
+                    {
+                        Set(sc, "TargetPath", launcher);
+                        Set(sc, "WorkingDirectory", Path.Combine(installDir, "Game"));
+                        Set(sc, "Description", AppName);
+                        Invoke(sc, "Save");
+                    }
+                    finally { Release(sc); }
+                }
+
+                object un = Call(shell, "CreateShortcut", Path.Combine(desktop, "卸载 " + AppName + ".lnk"));
+                if (un != null)
+                {
+                    try
+                    {
+                        Set(un, "TargetPath", uninstall);
+                        Set(un, "WorkingDirectory", installDir);
+                        Invoke(un, "Save");
+                    }
+                    finally { Release(un); }
+                }
             }
-            finally { System.Runtime.InteropServices.Marshal.ReleaseComObject(un); }
+            finally { Release(shell); }
         }
-        finally { System.Runtime.InteropServices.Marshal.ReleaseComObject(shell); }
+        catch (Exception ex)
+        {
+            // 快捷方式建不出来不影响安装，提示一下就行
+            MessageBox.Show("文件已经装好了，但桌面快捷方式没建出来：\r\n" + ex.Message +
+                            "\r\n\r\n你可以在安装目录里双击 Game\\play-game.bat 直接开始玩。",
+                            AppName, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        }
+    }
+
+    static object Call(object target, string method, params object[] args)
+    {
+        return target.GetType().InvokeMember(method,
+            System.Reflection.BindingFlags.InvokeMethod, null, target, args);
     }
 
     static void Set(object shortcut, string prop, object value)
     {
+        if (shortcut == null) return;
         shortcut.GetType().InvokeMember(prop,
             System.Reflection.BindingFlags.SetProperty, null, shortcut, new object[] { value });
     }
 
     static void Invoke(object shortcut, string method)
     {
+        if (shortcut == null) return;
         shortcut.GetType().InvokeMember(method,
             System.Reflection.BindingFlags.InvokeMethod, null, shortcut, null);
+    }
+
+    static void Release(object com)
+    {
+        if (com == null) return;
+        try { System.Runtime.InteropServices.Marshal.ReleaseComObject(com); } catch (Exception) { }
     }
 }
 
