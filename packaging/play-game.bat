@@ -1,51 +1,64 @@
 @echo off
 rem ============================================================
-rem  AdventureSquad 启动器
-rem  游戏资源需要通过 http 读取（浏览器的 file:// 不允许），
-rem  所以这里起一个本地服务器再打开浏览器。
-rem  优先用 Node.js，没有就退到 Python。
+rem  AdventureSquad launcher
+rem
+rem  The game loads its assets over http (browsers block file://),
+rem  so this starts a tiny local server and opens the browser.
+rem  Node.js is used if available, otherwise Python.
+rem
+rem  IMPORTANT: keep this file ASCII-only. cmd.exe reads .bat files
+rem  with the system OEM codepage, so UTF-8 Chinese text here can
+rem  break the script.
 rem ============================================================
-chcp 65001 >nul
 title AdventureSquad
 cd /d "%~dp0"
 
 set PORT=8137
 
-where node >nul 2>nul
-if %errorlevel%==0 goto node
+where node >nul 2>&1
+if errorlevel 1 goto try_python
+goto run_node
 
-where py >nul 2>nul
-if %errorlevel%==0 goto py
+:try_python
+where py >nul 2>&1
+if errorlevel 1 goto try_python3
+goto run_py
 
-where python >nul 2>nul
-if %errorlevel%==0 goto python
+:try_python3
+where python >nul 2>&1
+if errorlevel 1 goto no_runtime
+goto run_python
 
+rem node 的服务器自己会打开浏览器
+:run_node
+node server.js %PORT%
+goto the_end
+
+rem python 不会开浏览器，用一个单独的脚本延迟两秒再打开
+:run_py
+start "" /b "%~dp0open-browser.cmd" %PORT%
+py -m http.server --bind 127.0.0.1 %PORT%
+goto the_end
+
+:run_python
+start "" /b "%~dp0open-browser.cmd" %PORT%
+python -m http.server --bind 127.0.0.1 %PORT%
+goto the_end
+
+:no_runtime
 echo.
-echo   没有找到 Node.js 或 Python，无法启动本地服务器。
+echo   Neither Node.js nor Python was found.
 echo.
-echo   请安装其中任意一个后重新运行本文件：
-echo     Node.js  https://nodejs.org
-echo     Python  https://www.python.org
+echo   The game needs a small local web server. Please install one of:
+echo     Node.js    https://nodejs.org
+echo     Python     https://www.python.org
+echo.
+echo   Then run this file again.
 echo.
 pause
 exit /b 1
 
-:node
-start "" /b cmd /c "timeout /t 2 /nobreak >nul ^& start "" http://localhost:%PORT%/"
-node server.js
-goto end
-
-:py
-start "" /b cmd /c "timeout /t 2 /nobreak >nul ^& start "" http://localhost:%PORT%/"
-py -m http.server %PORT%
-goto end
-
-:python
-start "" /b cmd /c "timeout /t 2 /nobreak >nul ^& start "" http://localhost:%PORT%/"
-python -m http.server %PORT%
-goto end
-
-:end
+:the_end
 echo.
-echo   服务已停止。
+echo   Server stopped.
 pause

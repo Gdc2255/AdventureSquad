@@ -35,6 +35,12 @@ function copyDir(src, dst) {
         else fs.copyFileSync(s, d);
     }
 }
+function copyCrlf(src, dst) {
+    fs.mkdirSync(path.dirname(dst), { recursive: true });
+    // 统一成 CRLF：cmd.exe 要求批处理文件是 CRLF，纯 LF 会被当成一整行执行
+    const text = fs.readFileSync(src, 'utf8').split(/\r\n|\n/).join('\r\n');
+    fs.writeFileSync(dst, text);
+}
 function copyFile(src, dst) {
     fs.mkdirSync(path.dirname(dst), { recursive: true });
     fs.copyFileSync(src, dst);
@@ -55,6 +61,10 @@ if (!fs.existsSync(path.join(webRoot, 'index.html'))) {
 copyDir(webRoot, path.join(PAYLOAD, 'Game', 'www'));
 copyFile(path.join(__dirname, 'server.js'), path.join(PAYLOAD, 'Game', 'server.js'));
 copyFile(path.join(__dirname, 'play-game.bat'), path.join(PAYLOAD, 'Game', 'play-game.bat'));
+copyFile(path.join(__dirname, 'open-browser.cmd'), path.join(PAYLOAD, 'Game', 'open-browser.cmd'));
+// cmd.exe 要求 CRLF 换行：纯 LF 的 .bat 会被当成一整行执行，直接崩掉
+copyCrlf(path.join(__dirname, 'play-game.bat'), path.join(PAYLOAD, 'Game', 'play-game.bat'));
+copyCrlf(path.join(__dirname, 'open-browser.cmd'), path.join(PAYLOAD, 'Game', 'open-browser.cmd'));
 
 // 项目源码
 const SRC = path.join(PAYLOAD, 'Source');
@@ -72,15 +82,15 @@ const guide = fs.readFileSync(path.join(__dirname, 'GUIDE.txt'));
 fs.writeFileSync(path.join(PAYLOAD, '安装与开发指引.txt'), Buffer.concat([Buffer.from([0xef, 0xbb, 0xbf]), guide]));
 
 // 卸载脚本
+// 卸载脚本：**只用 ASCII** —— cmd.exe 按系统 OEM 编码读 .cmd，
+// 中文内容会被误解成命令，把脚本搞崩。
 const uninstall = [
     '@echo off',
-    'chcp 65001 >nul',
     'set T=%LOCALAPPDATA%\\AdventureSquad',
-    'echo 正在卸载 AdventureSquad ...',
-    'if not "%T%"=="" if "%T:~-15%"=="AdventureSquad" rd /s /q "%T%"',
-    'del "%USERPROFILE%\\Desktop\\AdventureSquad.lnk" >nul 2>&1',
-    'del "%USERPROFILE%\\Desktop\\卸载 AdventureSquad.lnk" >nul 2>&1',
-    'echo 已卸载完成。',
+    'echo Uninstalling AdventureSquad ...',
+    'if not "%T%"=="" rd /s /q "%T%"',
+    'del "%USERPROFILE%\\Desktop\\*AdventureSquad.lnk" >nul 2>&1',
+    'echo Done.',
     'pause',
 ].join('\r\n');
 fs.writeFileSync(path.join(PAYLOAD, 'uninstall.cmd'), uninstall, 'utf8');

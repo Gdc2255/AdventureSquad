@@ -238,13 +238,12 @@ class InstallerForm : Form
         string dir = installDir;
         string[] lines = new string[] {
             "@echo off",
-            "chcp 65001 >nul",
             "set T=\"" + dir + "\"",
-            "echo 正在卸载 AdventureSquad ...",
+            "echo Uninstalling AdventureSquad ...",
             "if not \"%T%\"==\"\" rd /s /q \"%T%\"",
-            "del \"%USERPROFILE%\\Desktop\\AdventureSquad.lnk\" >nul 2>&1",
-            "del \"%USERPROFILE%\\Desktop\\卸载 AdventureSquad.lnk\" >nul 2>&1",
-            "echo 已卸载完成。",
+            // 用通配符删桌面快捷方式，避免脚本里出现中文文件名
+            "del \"%USERPROFILE%\\Desktop\\*AdventureSquad.lnk\" >nul 2>&1",
+            "echo Done.",
             "pause",
         };
         File.WriteAllLines(Path.Combine(installDir, "uninstall.cmd"), lines, Encoding.Default);
