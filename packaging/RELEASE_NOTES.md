@@ -5,7 +5,7 @@
 ### 怎么装
 
 1. 下载 `AdventureSquad-Setup-1.0.0.exe`（**单个文件就够了**，安装载荷已经打包在里面）
-2. 双击它，点「开始安装」
+2. 双击它，**可以自己选安装目录**（默认装在 %LOCALAPPDATA%\AdventureSquad），点「开始安装」
 3. 桌面上会出现「AdventureSquad」图标，双击开始游戏
 
 安装程序是用 Windows 自带的 .NET Framework 编译的，**不需要装任何运行时**。
@@ -13,7 +13,7 @@
 装完得到：
 
 ```
-%LOCALAPPDATA%\AdventureSquad\
+<你选的目录>\
   Game\              游戏本体（双击 play-game.bat 运行）
   Source\            项目源码（用 Cocos Creator 3.8.8 打开这个文件夹）
   安装与开发指引.txt   怎么玩 + 怎么继续开发

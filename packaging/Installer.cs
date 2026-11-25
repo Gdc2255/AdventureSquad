@@ -3,6 +3,7 @@ using System.Drawing;
 using System.IO;
 using System.IO.Compression;
 using System.Reflection;
+using System.Text;
 using System.Windows.Forms;
 
 // AdventureSquad 安装程序
@@ -13,9 +14,10 @@ class InstallerForm : Form
     const string AppName = "AdventureSquad";
     const string PayloadResource = "PayloadZip";
     string installDir;
+    TextBox pathBox;
     ProgressBar bar;
     Label status;
-    Button installBtn, cancelBtn;
+    Button installBtn, cancelBtn, browseBtn;
 
     public InstallerForm()
     {
@@ -26,7 +28,7 @@ class InstallerForm : Form
         FormBorderStyle = FormBorderStyle.FixedDialog;
         MaximizeBox = false;
         StartPosition = FormStartPosition.CenterScreen;
-        ClientSize = new Size(440, 210);
+        ClientSize = new Size(470, 250);
         Font = new Font("Microsoft YaHei UI", 9F);
 
         var title = new Label
@@ -35,26 +37,53 @@ class InstallerForm : Form
             Font = new Font("Microsoft YaHei UI", 16F, FontStyle.Bold),
             ForeColor = Color.FromArgb(180, 140, 40),
             AutoSize = true,
-            Location = new Point(22, 18),
+            Location = new Point(22, 16),
         };
         Controls.Add(title);
 
         var desc = new Label
         {
             Text = "一个用 Cocos Creator 做的 2D roguelike 射击小游戏。\r\n" +
-                   "安装后会得到游戏本体和项目源码。\r\n\r\n" +
-                   "安装目录：" + installDir,
+                   "安装后会得到游戏本体和项目源码。",
             AutoSize = true,
-            Location = new Point(22, 56),
+            Location = new Point(22, 52),
             ForeColor = Color.FromArgb(70, 76, 92),
         };
         Controls.Add(desc);
 
+        var dirLabel = new Label
+        {
+            Text = "安装到：",
+            AutoSize = true,
+            Location = new Point(22, 92),
+            ForeColor = Color.FromArgb(70, 76, 92),
+        };
+        Controls.Add(dirLabel);
+
+        pathBox = new TextBox
+        {
+            Text = installDir,
+            Location = new Point(22, 112),
+            Size = new Size(340, 23),
+            ReadOnly = true,
+            BackColor = Color.FromArgb(246, 247, 250),
+        };
+        Controls.Add(pathBox);
+
+        browseBtn = new Button
+        {
+            Text = "浏览…",
+            Location = new Point(368, 111),
+            Size = new Size(74, 25),
+        };
+        browseBtn.Click += (s, e) => Browse();
+        Controls.Add(browseBtn);
+
         bar = new ProgressBar
         {
             Style = ProgressBarStyle.Continuous,
-            Location = new Point(22, 150),
-            Size = new Size(396, 18),
+            Location = new Point(22, 176),
+            Size = new Size(420, 18),
         };
         Controls.Add(bar);
 
@@ -62,7 +91,7 @@ class InstallerForm : Form
         {
             Text = "就绪",
             AutoSize = true,
-            Location = new Point(22, 174),
+            Location = new Point(22, 200),
             ForeColor = Color.FromArgb(110, 118, 138),
         };
         Controls.Add(status);
@@ -70,7 +99,7 @@ class InstallerForm : Form
         installBtn = new Button
         {
             Text = "开始安装",
-            Location = new Point(238, 126),
+            Location = new Point(268, 218),
             Size = new Size(88, 28),
         };
         installBtn.Click += (s, e) => DoInstall();
@@ -79,11 +108,27 @@ class InstallerForm : Form
         cancelBtn = new Button
         {
             Text = "取消",
-            Location = new Point(330, 126),
-            Size = new Size(88, 28),
+            Location = new Point(360, 218),
+            Size = new Size(82, 28),
         };
         cancelBtn.Click += (s, e) => { Close(); };
         Controls.Add(cancelBtn);
+    }
+
+    /// 让用户选安装目录
+    void Browse()
+    {
+        using (var dlg = new FolderBrowserDialog())
+        {
+            dlg.Description = "选择 AdventureSquad 的安装目录";
+            dlg.SelectedPath = installDir;
+            dlg.ShowNewFolderButton = true;
+            if (dlg.ShowDialog() == DialogResult.OK)
+            {
+                installDir = dlg.SelectedPath;
+                pathBox.Text = installDir;
+            }
+        }
     }
 
     void DoInstall()
@@ -92,6 +137,21 @@ class InstallerForm : Form
         cancelBtn.Enabled = false;
         try
         {
+            // 用户可能改了路径（也可以直接敲）
+            string chosen = pathBox.Text.Trim();
+            if (chosen.Length > 0) installDir = chosen;
+            if (!Directory.Exists(installDir))
+            {
+                if (MessageBox.Show("目录不存在，要创建吗？\r\n" + installDir,
+                        AppName, MessageBoxButtons.YesNo, MessageBoxIcon.Question)
+                        != DialogResult.Yes)
+                {
+                    installBtn.Enabled = true; cancelBtn.Enabled = true;
+                    return;
+                }
+                Directory.CreateDirectory(installDir);
+            }
+
             bar.Maximum = 100;
             status.Text = "正在解压...";
             Application.DoEvents();
@@ -135,6 +195,7 @@ class InstallerForm : Form
 
             status.Text = "正在创建快捷方式...";
             Application.DoEvents();
+            WriteUninstaller();
             CreateShortcuts();
 
             bar.Value = 100;
@@ -166,6 +227,24 @@ class InstallerForm : Form
         string[] zips = Directory.GetFiles(exeDir, AppName + "-*.zip");
         if (zips.Length > 0) return File.OpenRead(zips[0]);
         return null;
+    }
+
+    /// 写卸载脚本 —— 里面写死**这次实际装的目录**，自选路径后也能正确卸载
+    void WriteUninstaller()
+    {
+        string dir = installDir;
+        string[] lines = new string[] {
+            "@echo off",
+            "chcp 65001 >nul",
+            "set T=\"" + dir + "\"",
+            "echo 正在卸载 AdventureSquad ...",
+            "if not \"%T%\"==\"\" rd /s /q \"%T%\"",
+            "del \"%USERPROFILE%\\Desktop\\AdventureSquad.lnk\" >nul 2>&1",
+            "del \"%USERPROFILE%\\Desktop\\卸载 AdventureSquad.lnk\" >nul 2>&1",
+            "echo 已卸载完成。",
+            "pause",
+        };
+        File.WriteAllLines(Path.Combine(installDir, "uninstall.cmd"), lines, Encoding.Default);
     }
 
     void CreateShortcuts()
