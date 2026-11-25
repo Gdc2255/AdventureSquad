@@ -97,6 +97,8 @@ execFileSync(CSC, [
     '/nologo', '/target:winexe', '/out:' + OUT_EXE,
     '/reference:System.Windows.Forms.dll', '/reference:System.Drawing.dll',
     '/reference:System.IO.Compression.FileSystem.dll', '/reference:System.IO.Compression.dll',
+    // 把载荷 zip 作为嵌入资源打进 exe，单文件安装包
+    '/resource:' + OUT_ZIP + ',PayloadZip',
     path.join(__dirname, 'Installer.cs'),
 ], { stdio: 'inherit' });
 

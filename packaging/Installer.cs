@@ -2,15 +2,16 @@ using System;
 using System.Drawing;
 using System.IO;
 using System.IO.Compression;
+using System.Reflection;
 using System.Windows.Forms;
 
 // AdventureSquad 安装程序
 // 用 .NET Framework 自带的 csc 编译，接收方不需要装任何运行时。
-// 载荷是同目录下的 zip，解到 %LOCALAPPDATA%\AdventureSquad，并建桌面快捷方式。
+// 安装载荷（zip）以嵌入资源的形式打进本 exe，双击即可安装，不需要额外文件。
 class InstallerForm : Form
 {
     const string AppName = "AdventureSquad";
-    string zipPath;
+    const string PayloadResource = "PayloadZip";
     string installDir;
     ProgressBar bar;
     Label status;
@@ -71,7 +72,6 @@ class InstallerForm : Form
             Text = "开始安装",
             Location = new Point(238, 126),
             Size = new Size(88, 28),
-            DialogResult = DialogResult.None,
         };
         installBtn.Click += (s, e) => DoInstall();
         Controls.Add(installBtn);
@@ -92,29 +92,26 @@ class InstallerForm : Form
         cancelBtn.Enabled = false;
         try
         {
-            // 载荷 zip 与本 exe 同目录
-            string exeDir = Path.GetDirectoryName(Application.ExecutablePath);
-            string[] zips = Directory.GetFiles(exeDir, AppName + "-*.zip");
-            if (zips.Length == 0)
-            {
-                MessageBox.Show("没找到安装包 " + AppName + "-*.zip\r\n" +
-                                "请确认它和安装程序放在同一个目录里。",
-                                "缺少安装载荷", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                installBtn.Enabled = true; cancelBtn.Enabled = true;
-                return;
-            }
-            zipPath = zips[0];
-
-            bar.Style = ProgressBarStyle.Continuous;
             bar.Maximum = 100;
             status.Text = "正在解压...";
             Application.DoEvents();
 
-            if (!Directory.Exists(installDir)) Directory.CreateDirectory(installDir);
-            int total = CountEntries(zipPath);
-            int done = 0;
-            using (var zip = ZipFile.OpenRead(zipPath))
+            // 载荷优先取嵌入资源（单文件安装包）；没有就退回同目录的 zip（方便调试）
+            Stream payload = OpenPayload();
+            if (payload == null)
             {
+                MessageBox.Show("安装包里没有找到载荷（嵌入资源损坏）。\r\n" +
+                                "请重新下载完整的安装程序。",
+                                AppName, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                installBtn.Enabled = true; cancelBtn.Enabled = true;
+                return;
+            }
+
+            using (payload)
+            using (var zip = new ZipArchive(payload, ZipArchiveMode.Read))
+            {
+                int total = zip.Entries.Count;
+                int done = 0;
                 foreach (var entry in zip.Entries)
                 {
                     string target = Path.Combine(installDir, entry.FullName);
@@ -159,9 +156,16 @@ class InstallerForm : Form
         }
     }
 
-    static int CountEntries(string zip)
+    /// 打开安装载荷：优先嵌入资源，其次同目录的 zip
+    Stream OpenPayload()
     {
-        using (var z = ZipFile.OpenRead(zip)) return z.Entries.Count;
+        Assembly asm = Assembly.GetExecutingAssembly();
+        Stream s = asm.GetManifestResourceStream(PayloadResource);
+        if (s != null) return s;
+        string exeDir = Path.GetDirectoryName(Application.ExecutablePath);
+        string[] zips = Directory.GetFiles(exeDir, AppName + "-*.zip");
+        if (zips.Length > 0) return File.OpenRead(zips[0]);
+        return null;
     }
 
     void CreateShortcuts()
@@ -171,38 +175,43 @@ class InstallerForm : Form
         string uninstall = Path.Combine(installDir, "uninstall.cmd");
 
         Type shellType = Type.GetTypeFromProgID("WScript.Shell");
-        if (shellType != null)
+        if (shellType == null) return;
+        object shell = Activator.CreateInstance(shellType);
+        try
         {
-            object shell = Activator.CreateInstance(shellType);
+            var mk = shellType.GetMethod("CreateShortcut");
+            var sc = mk.Invoke(shell, new object[] { Path.Combine(desktop, AppName + ".lnk") });
             try
             {
-                var mk = shellType.GetMethod("CreateShortcut");
-                var sc = mk.Invoke(shell, new object[] { Path.Combine(desktop, AppName + ".lnk") });
-                try
-                {
-                    sc.GetType().InvokeMember("TargetPath",
-                        System.Reflection.BindingFlags.SetProperty, null, sc, new object[] { launcher });
-                    sc.GetType().InvokeMember("WorkingDirectory",
-                        System.Reflection.BindingFlags.SetProperty, null, sc, new object[] { Path.Combine(installDir, "Game") });
-                    sc.GetType().InvokeMember("Description",
-                        System.Reflection.BindingFlags.SetProperty, null, sc, new object[] { AppName });
-                    sc.GetType().InvokeMember("Save",
-                        System.Reflection.BindingFlags.InvokeMethod, null, sc, null);
-                }
-                finally { System.Runtime.InteropServices.Marshal.ReleaseComObject(sc); }
-
-                var un = mk.Invoke(shell, new object[] { Path.Combine(desktop, "卸载 " + AppName + ".lnk") });
-                try
-                {
-                    un.GetType().InvokeMember("TargetPath",
-                        System.Reflection.BindingFlags.SetProperty, null, un, new object[] { uninstall });
-                    un.GetType().InvokeMember("Save",
-                        System.Reflection.BindingFlags.InvokeMethod, null, un, null);
-                }
-                finally { System.Runtime.InteropServices.Marshal.ReleaseComObject(un); }
+                Set(sc, "TargetPath", launcher);
+                Set(sc, "WorkingDirectory", Path.Combine(installDir, "Game"));
+                Set(sc, "Description", AppName);
+                Invoke(sc, "Save");
             }
-            finally { System.Runtime.InteropServices.Marshal.ReleaseComObject(shell); }
+            finally { System.Runtime.InteropServices.Marshal.ReleaseComObject(sc); }
+
+            var un = mk.Invoke(shell, new object[] { Path.Combine(desktop, "卸载 " + AppName + ".lnk") });
+            try
+            {
+                Set(un, "TargetPath", uninstall);
+                Set(un, "WorkingDirectory", installDir);
+                Invoke(un, "Save");
+            }
+            finally { System.Runtime.InteropServices.Marshal.ReleaseComObject(un); }
         }
+        finally { System.Runtime.InteropServices.Marshal.ReleaseComObject(shell); }
+    }
+
+    static void Set(object shortcut, string prop, object value)
+    {
+        shortcut.GetType().InvokeMember(prop,
+            System.Reflection.BindingFlags.SetProperty, null, shortcut, new object[] { value });
+    }
+
+    static void Invoke(object shortcut, string method)
+    {
+        shortcut.GetType().InvokeMember(method,
+            System.Reflection.BindingFlags.InvokeMethod, null, shortcut, null);
     }
 }
 

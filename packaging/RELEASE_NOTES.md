@@ -4,11 +4,11 @@
 
 ### 怎么装
 
-1. 下载下面两个文件（**必须放在同一个目录里**）：
-   - `AdventureSquad-Setup-1.0.0.exe` —— 安装程序
-   - `AdventureSquad-1.0.0.zip` —— 安装载荷
-2. 双击 `AdventureSquad-Setup-1.0.0.exe`，点「开始安装」
+1. 下载 `AdventureSquad-Setup-1.0.0.exe`（**单个文件就够了**，安装载荷已经打包在里面）
+2. 双击它，点「开始安装」
 3. 桌面上会出现「AdventureSquad」图标，双击开始游戏
+
+安装程序是用 Windows 自带的 .NET Framework 编译的，**不需要装任何运行时**。
 
 装完得到：
 
@@ -19,7 +19,7 @@
   安装与开发指引.txt   怎么玩 + 怎么继续开发
 ```
 
-想直接试玩又不想装，可以只下载 `AdventureSquad-1.0.0.zip`，解压后进 `Game\` 双击 `play-game.bat`。
+想直接试玩又不想装的话，安装包里也有完整的源码和游戏本体，装完在 `Game\` 里双击 `play-game.bat` 也能直接跑。
 
 ### 运行需要什么
 

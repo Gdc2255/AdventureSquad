@@ -1387,7 +1387,7 @@ export class Game extends Component {
         dim.fillColor = new Color(6, 8, 14, 235);
         dim.fill();
 
-        this.menuTitle = this.mkLabel(this.menuLayer, 'title', DW / 2, DH - 92, 42, '骑 士 小 队', true);
+        this.menuTitle = this.mkLabel(this.menuLayer, 'title', DW / 2, DH - 92, 42, '冒 险 小 队', true);
         this.menuTitle.color = new Color(255, 226, 150);
         this.mkLabel(this.menuLayer, 'sub', DW / 2, DH - 128, 18, '选一个模式开始', true);
 
