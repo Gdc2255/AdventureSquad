@@ -1,3 +1,4 @@
+// 把 PNG 放大 8 倍拼成一张预览图，方便肉眼挑素材
 const { Img, writePNG } = require('./pixpng');
 const fs = require('fs'), zlib = require('zlib');
 // 读 PNG（只支持自己生成的 RGBA8）并放大

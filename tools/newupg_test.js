@@ -1,3 +1,4 @@
+// 回归测试：22 张强化牌的属性是不是都真的生效了
 const fs = require('fs');
 (async () => {
   let targets = null;

@@ -1,3 +1,4 @@
+// 回归测试：迷宫不变量 —— 没有死胡同走廊、没有无用的门、每个房间至少 2 扇门
 const fs = require('fs');
 (async () => {
   let targets = null;

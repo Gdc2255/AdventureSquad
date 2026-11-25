@@ -1,3 +1,4 @@
+// 回归测试：Boss 大血条的出现与隐藏时机
 const fs = require('fs');
 (async () => {
   let targets = null;

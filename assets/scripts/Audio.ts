@@ -1,8 +1,10 @@
 import { AudioClip, AudioSourceComponent, Node, resources } from 'cc';
 
 /**
- * 音频系统：音效播放池 + 背景音乐 + 音量设置（存 localStorage）。
- * 素材全部来自 Kenney CC0 音效包（公共领域，可商用免署名）。
+ * 音频：音效播放池 + 背景音乐 + 音量设置（存 localStorage）。
+ *
+ * 音乐和音效是两路独立音量，设置面板改完立刻生效并记住。
+ * BGM 单例循环，切换时直接换 clip 不会重播。
  */
 export class AudioSys {
     /** 所有音效的 key（对应 resources/audio/<key>.ogg） */

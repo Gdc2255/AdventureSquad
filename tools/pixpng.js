@@ -1,4 +1,5 @@
-// 像素画生成器：直接在 Node 里画 PNG（自带 zlib + CRC32，无依赖）
+// 像素画工具：自带 PNG 编码器（zlib + CRC32，零依赖）+ 一个画图类
+// 用来在没有美术工具的情况下直接生成 16x16 / 32x32 的像素图
 const zlib = require('zlib');
 const fs = require('fs');
 

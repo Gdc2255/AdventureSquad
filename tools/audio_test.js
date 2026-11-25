@@ -1,3 +1,4 @@
+// 回归测试：音频加载与播放、设置面板、伤害飘字、震屏
 const fs = require('fs');
 (async () => {
   let targets = null;

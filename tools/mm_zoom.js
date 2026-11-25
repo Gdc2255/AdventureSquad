@@ -1,3 +1,4 @@
+// 截小地图区域的放大图
 const fs = require('fs');
 (async () => {
   let targets = null;

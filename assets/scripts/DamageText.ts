@@ -2,12 +2,11 @@ import { Color, HorizontalTextAlignment, Label, LabelOutline, Node, UITransform 
 import { mkNode } from './Core';
 
 /**
- * 飘字：伤害数字 / 提示文字。
- * 从指定位置往上飘一点并淡出。
+ * 飘字：命中时冒出的伤害数字，上飘一点再淡出。
  *
- * 注意：必须用 Core.mkNode 建节点（它先加 UITransform 再加渲染组件）。
- * 手动 addComponent(Graphics) 会让引擎**自动补一个 UITransform**，
- * 再手动加一个就成了两个 transform，Label 布局会错乱、文字画不出来。
+ * 注意：节点必须用 Core.mkNode 建 —— 它保证先加 UITransform 再加渲染组件。
+ * 手动 addComponent(Graphics) 会让引擎自动补一个 UITransform，
+ * 之后再手动加就成了两个 transform，Label 布局错乱、数字画不出来。
  */
 export class FloatText {
     node: Node;

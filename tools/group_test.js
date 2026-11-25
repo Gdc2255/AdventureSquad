@@ -1,3 +1,4 @@
+// 回归测试：骑士和法师的群体伤害（一次攻击该清一片）
 const fs = require('fs');
 (async () => {
   let targets = null;

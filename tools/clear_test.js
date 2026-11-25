@@ -1,3 +1,4 @@
+// 回归测试：端到端 —— 清光全图 → 走到出口 → 进下一关
 const fs = require('fs');
 (async () => {
   let targets = null;

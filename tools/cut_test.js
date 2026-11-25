@@ -1,3 +1,4 @@
+// 回归测试：Boss 房不能是「必经之路」（否则有些房间只能穿过 Boss 房才到，整局死锁）
 const fs = require('fs');
 (async () => {
   let targets = null;

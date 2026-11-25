@@ -1,3 +1,4 @@
+// 把 3 张随机地图拼成一张 PNG 用来看迷宫结构
 const fs = require('fs');
 (async () => {
   let targets = null;

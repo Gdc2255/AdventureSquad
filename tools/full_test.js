@@ -1,3 +1,4 @@
+// 回归测试：120 关真实流程的连通性 + Boss 血条的状态机
 const fs = require('fs');
 (async () => {
   let targets = null;

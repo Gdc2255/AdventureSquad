@@ -1,3 +1,4 @@
+// 回归测试：每个房间的怪能不能找到主角（会不会卡死在箱子角上）
 const fs = require('fs');
 (async () => {
   let targets = null;

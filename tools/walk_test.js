@@ -1,3 +1,4 @@
+// 回归测试：主角用游戏原本的移动逻辑能不能走到每个房间
 const fs = require('fs');
 (async () => {
   let targets = null;

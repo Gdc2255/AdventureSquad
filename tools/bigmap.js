@@ -1,3 +1,4 @@
+// 把整张地图导出成 PNG，用来看迷宫结构
 const fs = require('fs');
 (async () => {
   let targets = null;

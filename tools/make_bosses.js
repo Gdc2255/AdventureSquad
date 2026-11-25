@@ -1,4 +1,5 @@
-// 生成两个 Boss 的像素图（32x32，2 倍放到游戏里是 64px，比原来 16x16 放大 4 倍清晰得多）
+// 生成两个 Boss 的像素图（32x32，游戏里 2 倍显示成 64px）
+// 古木守卫和虚空祭司不是现成素材，是这个脚本画的
 const { Img, writePNG, hex } = require('./pixpng');
 const path = require('path');
 const OUT = path.join(__dirname, '..', 'assets', 'resources', 'knight');

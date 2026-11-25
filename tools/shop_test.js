@@ -1,3 +1,4 @@
+// 回归测试：挑战模式的选牌库（挑 3 张 → 开战）
 const fs = require('fs');
 (async () => {
   let targets = null;

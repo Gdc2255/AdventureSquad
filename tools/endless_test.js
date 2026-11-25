@@ -1,3 +1,4 @@
+// 回归测试：无尽模式 —— 清关自动进下一关、种子能复现同一局
 const fs = require('fs');
 (async () => {
   let targets = null;

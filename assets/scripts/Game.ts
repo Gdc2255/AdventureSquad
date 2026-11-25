@@ -1,3 +1,16 @@
+/**
+ * 游戏主组件：整个玩法都在这一个文件里。
+ *
+ * 场景里只有 Canvas 和这个组件，没有预制体 —— 玩家、敌人、子弹、掉落物、
+ * 地图、HUD、菜单、强化界面全部在运行时用代码生成。
+ *
+ * 主要部分：
+ *   - 三种模式：经典（8 间房迷宫逐关推进）、挑战（纯 Boss 战）、无尽（一直打下去）
+ *   - 三个职业：骑士（范围斩击）、法师（落点爆炸）、游侠（枪械射击）
+ *   - 敌人寻路：全场共用一张从主角出发的距离场，卡住时改走次优路径
+ *   - Boss 招式表：挑战模式的虚空祭司按阶段抽招式，同阶段等概率
+ *   - 手感：伤害飘字、震屏、顿帧；音效与 BGM 由 AudioSys 管
+ */
 import {
     _decorator, Component, Node, Graphics, Sprite, SpriteFrame, Label, UITransform, Color, Vec2,
     input, Input, EventKeyboard, EventMouse, KeyCode, view, js, resources,
